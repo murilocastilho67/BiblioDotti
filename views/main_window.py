@@ -1,16 +1,15 @@
 import tkinter as tk
-from views.cadastro_livro import cadastro_livro_window
+from views.livros_window import cadastro_livro_window
 from views.cadastro_aluno import cadastro_aluno_window
 from views.cadastro_emprestimo import cadastro_emprestimo_window
 from views.devolucao import devolucao_window
 
-def main_window():
-    root = tk.Tk()
+def main_window(root):
     root.title("Sistema de Biblioteca")
     root.geometry("400x300")
 
     # Botão para cadastrar livro
-    btn_cadastro_livro = tk.Button(root, text="Cadastrar Livro", command=cadastro_livro_window)
+    btn_cadastro_livro = tk.Button(root, text="Livros", command=cadastro_livro_window)
     btn_cadastro_livro.pack(pady=10)
 
     # Botão para cadastrar aluno
