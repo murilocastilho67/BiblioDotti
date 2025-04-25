@@ -97,18 +97,38 @@ CREATE TABLE tb_cor (
     nome VARCHAR(50) NOT NULL
 );
 
+select * from tb_aluno
 select * from tb_autor
 select * from tb_categoria
 select * from tb_cor
-select * from tb_livro
+select * from tb_devolucao
 select * from tb_editora
-select * from tb_tipo
+select * from tb_emprestimo
 select * from tb_exemplar
+select * from tb_livro
+select * from tb_tipo
+select * from tb_turma
+
+
+
 
 
 
 ALTER TABLE tb_livro DROP COLUMN cor;
 ALTER TABLE tb_livro ADD COLUMN id_cor INT;
 ALTER TABLE tb_livro ADD CONSTRAINT fk_cor FOREIGN KEY (id_cor) REFERENCES tb_cor(id);
+
+-- Temporariamente desativa o cheque de integridade referencial (não recomendado em produção)
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- Atualiza o ID
+UPDATE tb_livro SET id = 1 WHERE id = 7;
+
+-- Atualiza os exemplares que apontam para o ID antigo
+UPDATE tb_exemplar SET id_livro = 1 WHERE id_livro = 7;
+
+-- Reativa o cheque de integridade
+SET FOREIGN_KEY_CHECKS = 1;
+
 
 
