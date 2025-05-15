@@ -1,11 +1,10 @@
 import tkinter as tk
-from tkinter import messagebox
-from tkinter import ttk
+from tkinter import messagebox, ttk
 from tkcalendar import DateEntry
 from datetime import date
 import re
-from models.aluno import Aluno  # Certifique-se que o model aceite todos os campos
-from gerenciar_alunos_window import gerenciar_alunos_window
+from models.aluno import Aluno
+from views.gerenciar_alunos_window import gerenciar_alunos_window
 
 def cadastrar_aluno():
     try:
@@ -17,8 +16,6 @@ def cadastrar_aluno():
         estudante = entry_nome.get()
         sexo = sexo_var.get()
         data_nascimento = entry_data_nascimento.get_date()
-        bloqueado = 'Sim' if bloqueado_var.get() else 'Não'
-        data_bloqueio = date.today() if bloqueado == 'Sim' else None
 
         # Validações
         if not re.fullmatch(r'\d{4}', id_matriz):
@@ -45,8 +42,8 @@ def cadastrar_aluno():
             estudante=estudante.strip().title(),
             sexo='Mas' if sexo == 'M' else 'Fem',
             data_nascimento=data_nascimento,
-            bloqueado=bloqueado,
-            data_bloqueio=data_bloqueio
+            bloqueado='Não',  # Sempre 'Não' no cadastro
+            data_bloqueio=None  # Sempre None no cadastro
         )
 
         if aluno.salvar():
@@ -69,63 +66,76 @@ def limpar_campos():
     entry_nome.delete(0, tk.END)
     sexo_var.set("")
     entry_data_nascimento.set_date(date.today())
-    bloqueado_var.set(False)
 
 def cadastro_aluno_window():
     global entry_id_matriz, turno_var, entry_serie, entry_turma
-    global entry_matricula, entry_nome, sexo_var, entry_data_nascimento, bloqueado_var
+    global entry_matricula, entry_nome, sexo_var, entry_data_nascimento
 
     window = tk.Toplevel()
     window.title("Cadastro de Aluno")
-    window.geometry("400x600")
+    window.geometry("600x400")  # Ajustado para layout horizontal
     window.resizable(False, False)
+    window.configure(bg="#f0f0f0")  # Fundo claro
 
-    def criar_label(texto):
-        return tk.Label(window, text=texto, anchor="w")
+    # Estilo
+    style = ttk.Style()
+    style.configure("TLabel", font=("Arial", 10), background="#f0f0f0")
+    style.configure("TButton", font=("Arial", 10))
+    style.configure("TRadiobutton", font=("Arial", 10), background="#f0f0f0")
 
-    criar_label("ID Matriz (4 dígitos):").pack()
-    entry_id_matriz = tk.Entry(window)
-    entry_id_matriz.pack(pady=2)
+    # Frame principal com padding
+    frame = tk.Frame(window, bg="#f0f0f0", padx=20, pady=20)
+    frame.pack(fill=tk.BOTH, expand=True)
 
-    criar_label("Turno:").pack()
+    # Linha 1: ID Matriz e Matrícula
+    tk.Label(frame, text="ID Matriz (4 dígitos):", font=("Arial", 10), bg="#f0f0f0").grid(row=0, column=0, sticky="w", padx=5, pady=5)
+    entry_id_matriz = tk.Entry(frame, width=15)
+    entry_id_matriz.grid(row=0, column=1, padx=5, pady=5)
+
+    tk.Label(frame, text="Matrícula (10 dígitos):", font=("Arial", 10), bg="#f0f0f0").grid(row=0, column=2, sticky="w", padx=5, pady=5)
+    entry_matricula = tk.Entry(frame, width=20)
+    entry_matricula.grid(row=0, column=3, padx=5, pady=5)
+
+    # Linha 2: Série e Turma
+    tk.Label(frame, text="Série (1 dígito):", font=("Arial", 10), bg="#f0f0f0").grid(row=1, column=0, sticky="w", padx=5, pady=5)
+    entry_serie = tk.Entry(frame, width=10)
+    entry_serie.grid(row=1, column=1, padx=5, pady=5)
+
+    tk.Label(frame, text="Turma (3 dígitos):", font=("Arial", 10), bg="#f0f0f0").grid(row=1, column=2, sticky="w", padx=5, pady=5)
+    entry_turma = tk.Entry(frame, width=10)
+    entry_turma.grid(row=1, column=3, padx=5, pady=5)
+
+    # Linha 3: Nome do Estudante
+    tk.Label(frame, text="Nome do Estudante:", font=("Arial", 10), bg="#f0f0f0").grid(row=2, column=0, sticky="w", padx=5, pady=5)
+    entry_nome = tk.Entry(frame, width=50)
+    entry_nome.grid(row=2, column=1, columnspan=3, padx=5, pady=5, sticky="w")
+
+    # Linha 4: Turno
+    tk.Label(frame, text="Turno:", font=("Arial", 10), bg="#f0f0f0").grid(row=3, column=0, sticky="w", padx=5, pady=5)
     turno_var = tk.StringVar()
-    frame_turno = tk.Frame(window)
+    frame_turno = tk.Frame(frame, bg="#f0f0f0")
+    frame_turno.grid(row=3, column=1, columnspan=3, sticky="w", padx=5, pady=5)
     for valor, texto in [('M', 'Matutino'), ('V', 'Vespertino'), ('N', 'Noturno')]:
-        tk.Radiobutton(frame_turno, text=texto, variable=turno_var, value=valor).pack(side="left")
-    frame_turno.pack(pady=2)
+        tk.Radiobutton(frame_turno, text=texto, variable=turno_var, value=valor, font=("Arial", 10), bg="#f0f0f0").pack(side="left", padx=5)
 
-    criar_label("Série (1 dígito):").pack()
-    entry_serie = tk.Entry(window)
-    entry_serie.pack(pady=2)
-
-    criar_label("Turma (3 dígitos):").pack()
-    entry_turma = tk.Entry(window)
-    entry_turma.pack(pady=2)
-
-    criar_label("Matrícula (10 dígitos):").pack()
-    entry_matricula = tk.Entry(window)
-    entry_matricula.pack(pady=2)
-
-    criar_label("Nome do Estudante:").pack()
-    entry_nome = tk.Entry(window)
-    entry_nome.pack(pady=2)
-
-    criar_label("Sexo:").pack()
+    # Linha 5: Sexo
+    tk.Label(frame, text="Sexo:", font=("Arial", 10), bg="#f0f0f0").grid(row=4, column=0, sticky="w", padx=5, pady=5)
     sexo_var = tk.StringVar()
-    frame_sexo = tk.Frame(window)
-    tk.Radiobutton(frame_sexo, text="Masculino", variable=sexo_var, value='M').pack(side="left")
-    tk.Radiobutton(frame_sexo, text="Feminino", variable=sexo_var, value='F').pack(side="left")
-    frame_sexo.pack(pady=2)
+    frame_sexo = tk.Frame(frame, bg="#f0f0f0")
+    frame_sexo.grid(row=4, column=1, columnspan=3, sticky="w", padx=5, pady=5)
+    tk.Radiobutton(frame_sexo, text="Masculino", variable=sexo_var, value='M', font=("Arial", 10), bg="#f0f0f0").pack(side="left", padx=5)
+    tk.Radiobutton(frame_sexo, text="Feminino", variable=sexo_var, value='F', font=("Arial", 10), bg="#f0f0f0").pack(side="left", padx=5)
 
-    criar_label("Data de Nascimento:").pack()
-    entry_data_nascimento = DateEntry(window, date_pattern='dd/mm/yyyy', locale='pt_BR')
-    entry_data_nascimento.pack(pady=2)
+    # Linha 6: Data de Nascimento
+    tk.Label(frame, text="Data de Nascimento:", font=("Arial", 10), bg="#f0f0f0").grid(row=5, column=0, sticky="w", padx=5, pady=5)
+    entry_data_nascimento = DateEntry(frame, date_pattern='dd/mm/yyyy', locale='pt_BR', width=15)
+    entry_data_nascimento.grid(row=5, column=1, padx=5, pady=5, sticky="w")
 
-    bloqueado_var = tk.BooleanVar()
-    tk.Checkbutton(window, text="Bloquear aluno para empréstimos", variable=bloqueado_var).pack(pady=5)
-
-    tk.Button(window, text="Salvar", command=cadastrar_aluno).pack(pady=10)
-    tk.Button(window, text="Limpar", command=limpar_campos).pack(pady=2)
-    tk.Button(window, text="Gerenciar Alunos", command=gerenciar_alunos_window).pack(pady=5)
+    # Linha 7: Botões
+    frame_botoes = tk.Frame(frame, bg="#f0f0f0")
+    frame_botoes.grid(row=6, column=0, columnspan=4, pady=20)
+    tk.Button(frame_botoes, text="Salvar", command=cadastrar_aluno, font=("Arial", 10), bg="#4CAF50", fg="white").pack(side="left", padx=5)
+    tk.Button(frame_botoes, text="Limpar", command=limpar_campos, font=("Arial", 10), bg="#FFC107", fg="black").pack(side="left", padx=5)
+    tk.Button(frame_botoes, text="Gerenciar Alunos", command=gerenciar_alunos_window, font=("Arial", 10), bg="#2196F3", fg="white").pack(side="left", padx=5)
 
     window.mainloop()

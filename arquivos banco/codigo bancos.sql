@@ -1,4 +1,5 @@
 CREATE DATABASE IF NOT EXISTS db_biblioteca_dotti;
+
 USE db_biblioteca_dotti;
 
 -- AUTOR
@@ -58,14 +59,19 @@ CREATE TABLE tb_exemplar (
     FOREIGN KEY (id_livro) REFERENCES tb_livro(id)
 );
 
--- ALUNO
+-- ALUNOS
 CREATE TABLE tb_aluno (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    nome VARCHAR(100) NOT NULL,
-    matricula VARCHAR(50) NOT NULL UNIQUE,
-    id_turma INT,
-
-    FOREIGN KEY (id_turma) REFERENCES tb_turma(id)
+    id_matriz INT NOT NULL,
+    turno CHAR(1) NOT NULL,
+    serie INT NOT NULL,
+    turma INT NOT NULL,
+    matricula BIGINT NOT NULL UNIQUE,
+    estudante VARCHAR(100) NOT NULL,
+    sexo ENUM('Mas', 'Fem') NOT NULL,
+    data_nascimento DATE,
+    bloqueado ENUM('Sim', 'Não') NOT NULL DEFAULT 'Não',
+    data_bloqueio DATE
 );
 
 -- EMPRÉSTIMO
