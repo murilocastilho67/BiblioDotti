@@ -3,43 +3,64 @@ from tkinter import ttk, messagebox, simpledialog
 from models.livro import Livro
 from database.conexao import conectar
 from app.utils import carregar_opcoes_combobox
-from views.gerenciar_livros_window import gerenciar_livros_window  # Correto, apenas a função
+from views.gerenciar_livros_window import gerenciar_livros_window
+
 
 def cadastro_livro_window():
     janela = tk.Toplevel()
     janela.title("Cadastro de Livro")
 
+    # Tamanho inicial e centralização
+    largura = 600
+    altura = 400
+    largura_tela = janela.winfo_screenwidth()
+    altura_tela = janela.winfo_screenheight()
+    pos_x = (largura_tela - largura) // 2
+    pos_y = (altura_tela - altura) // 2
+    janela.geometry(f"{largura}x{altura}+{pos_x}+{pos_y}")
+    janela.minsize(550, 350)
+    janela.configure(bg="#f0f0f0")
+
+    # Frame principal para conter todos os widgets
+    frame = tk.Frame(janela, bg="#f0f0f0")
+    frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+    janela.grid_rowconfigure(0, weight=1)
+    janela.grid_columnconfigure(0, weight=1)
+
     manter_dados_var = tk.BooleanVar(value=False)
 
-    tk.Label(janela, text="Título:").grid(row=0, column=0, padx=5, pady=5, sticky="w")
-    titulo_entry = ttk.Entry(janela, width=50)
-    titulo_entry.grid(row=0, column=1, padx=5, pady=5)
+    # Título
+    tk.Label(frame, text="Título:", bg="#f0f0f0", font=("Arial", 10)).grid(row=0, column=0, padx=5, pady=5, sticky="w")
+    titulo_entry = ttk.Entry(frame, width=40)
+    titulo_entry.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
 
     # Função para criar um Combobox com autocomplete
-    def criar_combobox_autocomplete(janela, row, label_text, table_name):
-        tk.Label(janela, text=label_text).grid(row=row, column=0, padx=5, pady=5, sticky="w")
-        combobox = ttk.Combobox(janela, width=47)
-        combobox.grid(row=row, column=1, padx=5, pady=5)
+    def criar_combobox_autocomplete(frame, row, label_text, table_name):
+        tk.Label(frame, text=label_text, bg="#f0f0f0", font=("Arial", 10)).grid(row=row, column=0, padx=5, pady=5,
+                                                                                sticky="w")
+        combobox = ttk.Combobox(frame, width=37)
+        combobox.grid(row=row, column=1, padx=5, pady=5, sticky="ew")
         carregar_opcoes_combobox(combobox, table_name)
         combobox['state'] = 'normal'
 
-        # Filtragem ao digitar
         def on_keyrelease(event):
             texto = combobox.get().lower()
             valores = combobox['values']
             filtrado = [item for item in valores if texto in item.lower()]
             combobox['values'] = filtrado
-            combobox.event_generate('<Down>')  # mostra a lista filtrada
+            combobox.event_generate('<Down>')
 
         combobox.bind('<KeyRelease>', on_keyrelease)
         return combobox
 
-    autor_combobox = criar_combobox_autocomplete(janela, 1, "Autor:", "tb_autor")
-    categoria_combobox = criar_combobox_autocomplete(janela, 2, "Categoria:", "tb_categoria")
-    editora_combobox = criar_combobox_autocomplete(janela, 3, "Editora:", "tb_editora")
-    tipo_combobox = criar_combobox_autocomplete(janela, 4, "Tipo:", "tb_tipo")
-    cor_combobox = criar_combobox_autocomplete(janela, 5, "Cor:", "tb_cor")
+    # Comboboxes
+    autor_combobox = criar_combobox_autocomplete(frame, 1, "Autor:", "tb_autor")
+    categoria_combobox = criar_combobox_autocomplete(frame, 2, "Categoria:", "tb_categoria")
+    editora_combobox = criar_combobox_autocomplete(frame, 3, "Editora:", "tb_editora")
+    tipo_combobox = criar_combobox_autocomplete(frame, 4, "Tipo:", "tb_tipo")
+    cor_combobox = criar_combobox_autocomplete(frame, 5, "Cor:", "tb_cor")
 
+    # Funções para gerenciar valores dos comboboxes
     def adicionar_valor(combobox, tabela, titulo):
         novo_valor = simpledialog.askstring(f"Nova(o) {titulo}", f"Digite o nome da(o) {titulo.lower()}:")
         if novo_valor:
@@ -73,7 +94,8 @@ def cadastro_livro_window():
         if not valor:
             messagebox.showerror("Erro", f"Selecione um(a) {titulo} para excluir.")
             return
-        confirmacao = messagebox.askyesno("Confirmar exclusão", f"Tem certeza de que deseja excluir {titulo.lower()} '{valor}'?")
+        confirmacao = messagebox.askyesno("Confirmar exclusão",
+                                          f"Tem certeza de que deseja excluir {titulo.lower()} '{valor}'?")
         if confirmacao:
             conn = conectar()
             cursor = conn.cursor()
@@ -84,40 +106,32 @@ def cadastro_livro_window():
             carregar_opcoes_combobox(combobox, tabela)
             messagebox.showinfo("Sucesso", f"{titulo} excluída com sucesso!")
 
-    ttk.Button(janela, text="Criar", command=lambda: adicionar_valor(autor_combobox, "tb_autor", "Autor")).grid(row=1, column=2, padx=5, pady=5)
-    ttk.Button(janela, text="Editar", command=lambda: editar_valor(autor_combobox, "tb_autor", "Autor")).grid(row=1, column=3, padx=5, pady=5)
-    ttk.Button(janela, text="Excluir", command=lambda: excluir_valor(autor_combobox, "tb_autor", "Autor")).grid(row=1, column=4, padx=5, pady=5)
+    # Botões para cada combobox (Criar, Editar, Excluir)
+    for row, combobox, tabela, titulo in [
+        (1, autor_combobox, "tb_autor", "Autor"),
+        (2, categoria_combobox, "tb_categoria", "Categoria"),
+        (3, editora_combobox, "tb_editora", "Editora"),
+        (4, tipo_combobox, "tb_tipo", "Tipo"),
+        (5, cor_combobox, "tb_cor", "Cor")
+    ]:
+        tk.Button(frame, text="Criar", command=lambda c=combobox, t=tabela, ti=titulo: adicionar_valor(c, t, ti),
+                  bg="#4CAF50", fg="white", font=("Arial", 8), width=8).grid(row=row, column=2, padx=2, pady=5)
+        tk.Button(frame, text="Editar", command=lambda c=combobox, t=tabela, ti=titulo: editar_valor(c, t, ti),
+                  bg="#2196F3", fg="white", font=("Arial", 8), width=8).grid(row=row, column=3, padx=2, pady=5)
+        tk.Button(frame, text="Excluir", command=lambda c=combobox, t=tabela, ti=titulo: excluir_valor(c, t, ti),
+                  bg="#F44336", fg="white", font=("Arial", 8), width=8).grid(row=row, column=4, padx=2, pady=5)
 
-    ttk.Button(janela, text="Criar", command=lambda: adicionar_valor(categoria_combobox, "tb_categoria", "Categoria")).grid(row=2, column=2, padx=5, pady=5)
-    ttk.Button(janela, text="Editar", command=lambda: editar_valor(categoria_combobox, "tb_categoria", "Categoria")).grid(row=2, column=3, padx=5, pady=5)
-    ttk.Button(janela, text="Excluir", command=lambda: excluir_valor(categoria_combobox, "tb_categoria", "Categoria")).grid(row=2, column=4, padx=5, pady=5)
-
-    ttk.Button(janela, text="Criar", command=lambda: adicionar_valor(editora_combobox, "tb_editora", "Editora")).grid(row=3, column=2, padx=5, pady=5)
-    ttk.Button(janela, text="Editar", command=lambda: editar_valor(editora_combobox, "tb_editora", "Editora")).grid(row=3, column=3, padx=5, pady=5)
-    ttk.Button(janela, text="Excluir", command=lambda: excluir_valor(editora_combobox, "tb_editora", "Editora")).grid(row=3, column=4, padx=5, pady=5)
-
-    ttk.Button(janela, text="Criar", command=lambda: adicionar_valor(tipo_combobox, "tb_tipo", "Tipo")).grid(row=4, column=2, padx=5, pady=5)
-    ttk.Button(janela, text="Editar", command=lambda: editar_valor(tipo_combobox, "tb_tipo", "Tipo")).grid(row=4, column=3, padx=5, pady=5)
-    ttk.Button(janela, text="Excluir", command=lambda: excluir_valor(tipo_combobox, "tb_tipo", "Tipo")).grid(row=4, column=4, padx=5, pady=5)
-
-    ttk.Button(janela, text="Criar", command=lambda: adicionar_valor(cor_combobox, "tb_cor", "Cor")).grid(row=5, column=2, padx=5, pady=5)
-    ttk.Button(janela, text="Editar", command=lambda: editar_valor(cor_combobox, "tb_cor", "Cor")).grid(row=5, column=3, padx=5, pady=5)
-    ttk.Button(janela, text="Excluir", command=lambda: excluir_valor(cor_combobox, "tb_cor", "Cor")).grid(row=5, column=4, padx=5, pady=5)
-
-    tk.Label(janela, text="Qtd. Exemplares:").grid(row=6, column=0, padx=5, pady=5, sticky="w")
-    qtd_entry = ttk.Entry(janela, width=10)
+    # Quantidade de exemplares
+    tk.Label(frame, text="Qtd. Exemplares:", bg="#f0f0f0", font=("Arial", 10)).grid(row=6, column=0, padx=5, pady=5,
+                                                                                    sticky="w")
+    qtd_entry = ttk.Entry(frame, width=10)
     qtd_entry.grid(row=6, column=1, padx=5, pady=5, sticky="w")
 
-    manter_dados_checkbox = ttk.Checkbutton(janela, text="Manter dados após cadastro", variable=manter_dados_var)
+    # Checkbox
+    manter_dados_checkbox = ttk.Checkbutton(frame, text="Manter dados após cadastro", variable=manter_dados_var)
     manter_dados_checkbox.grid(row=7, column=0, columnspan=2, padx=5, pady=5, sticky="w")
 
-    # Botão para Gerenciar Livros (fora da função cadastrar_livro)
-    def abrir_gerenciamento():
-        gerenciar_livros_window()  # Certifique-se de que essa função está corretamente definida em views.py
-
-    gerenciar_btn = ttk.Button(janela, text="Gerenciar Livros", command=abrir_gerenciamento)
-    gerenciar_btn.grid(row=9, column=0, columnspan=2, pady=10)
-
+    # Função de cadastro de livro
     def cadastrar_livro():
         titulo = titulo_entry.get()
         autor = autor_combobox.get()
@@ -162,7 +176,7 @@ def cadastro_livro_window():
         conn = conectar()
         cursor = conn.cursor()
         for i in range(qtd_exemplares):
-            codigo_exemplar = f"{livro_id:05d}-{i+1:03d}"
+            codigo_exemplar = f"{livro_id:05d}-{i + 1:03d}"
             cursor.execute(
                 "INSERT INTO tb_exemplar (id_livro, codigo_exemplar) VALUES (%s, %s)",
                 (livro_id, codigo_exemplar)
@@ -182,5 +196,13 @@ def cadastro_livro_window():
             tipo_combobox.set('')
             cor_combobox.set('')
 
-    cadastrar_btn = ttk.Button(janela, text="Cadastrar", command=cadastrar_livro)
-    cadastrar_btn.grid(row=8, column=0, columnspan=2, pady=10)
+    # Botões principais
+    tk.Button(frame, text="Cadastrar", command=cadastrar_livro,
+              bg="#4CAF50", fg="white", font=("Arial", 10), width=12).grid(row=8, column=0, columnspan=2, pady=10)
+    tk.Button(frame, text="Gerenciar Livros", command=gerenciar_livros_window,
+              bg="#2196F3", fg="white", font=("Arial", 10), width=15).grid(row=9, column=0, columnspan=2, pady=10)
+
+    # Configurar peso das colunas para responsividade
+    frame.grid_columnconfigure(1, weight=1)
+
+    janela.mainloop()
