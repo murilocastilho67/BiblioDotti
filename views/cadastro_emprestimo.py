@@ -24,7 +24,8 @@ def cadastrar_emprestimo():
 
 
 def limpar_campos():
-    entry_busca.delete(0, tk.END)
+    entry_busca_aluno.delete(0, tk.END)
+    entry_busca_livro.delete(0, tk.END)
     combo_aluno.set("")
     combo_livro.set("")
     combo_exemplar.set("")
@@ -40,7 +41,7 @@ def atualizar_exemplares(*args):
 
 
 def filtrar_alunos(*args):
-    busca = entry_busca.get().lower()
+    busca = entry_busca_aluno.get().lower()
     conn = conectar()
     cursor = conn.cursor()
     query = """
@@ -55,13 +56,30 @@ def filtrar_alunos(*args):
     combo_aluno["values"] = [f"{a[0]} - {a[1]} (Matrícula: {a[2]})" for a in alunos]
 
 
+def filtrar_livros(*args):
+    busca = entry_busca_livro.get().lower()
+    conn = conectar()
+    cursor = conn.cursor()
+    query = """
+    SELECT tb_livro.id, tb_livro.titulo
+    FROM tb_livro
+    LEFT JOIN tb_autor ON tb_livro.id_autor = tb_autor.id
+    WHERE tb_livro.titulo LIKE %s OR tb_autor.nome LIKE %s
+    """
+    cursor.execute(query, (f"%{busca}%", f"%{busca}%"))
+    livros = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    combo_livro["values"] = [f"{l[0]} - {l[1]}" for l in livros]
+
+
 def cadastro_emprestimo_window():
     window = tk.Toplevel()
     window.title("Cadastro de Empréstimo")
 
     # Tamanho inicial da janela
     largura = 600
-    altura = 400
+    altura = 450
     # Centralizar a janela
     largura_tela = window.winfo_screenwidth()
     altura_tela = window.winfo_screenheight()
@@ -70,7 +88,7 @@ def cadastro_emprestimo_window():
     window.geometry(f"{largura}x{altura}+{pos_x}+{pos_y}")
 
     # Configurar a janela para ser responsiva
-    window.minsize(500, 350)
+    window.minsize(500, 400)
     window.grid_rowconfigure(0, weight=1)
     window.grid_columnconfigure(0, weight=1)
 
@@ -81,12 +99,12 @@ def cadastro_emprestimo_window():
     frame.grid_columnconfigure(0, weight=1)
 
     # Busca de aluno
-    label_busca = tk.Label(frame, text="Buscar Aluno (Nome ou Matrícula):")
-    label_busca.pack(anchor="w", pady=5)
-    global entry_busca
-    entry_busca = tk.Entry(frame, width=50)
-    entry_busca.pack(fill="x", pady=5)
-    entry_busca.bind("<KeyRelease>", filtrar_alunos)
+    label_busca_aluno = tk.Label(frame, text="Buscar Aluno (Nome ou Matrícula):")
+    label_busca_aluno.pack(anchor="w", pady=5)
+    global entry_busca_aluno
+    entry_busca_aluno = tk.Entry(frame, width=50)
+    entry_busca_aluno.pack(fill="x", pady=5)
+    entry_busca_aluno.bind("<KeyRelease>", filtrar_alunos)
 
     # Aluno
     label_aluno = tk.Label(frame, text="Aluno:")
@@ -101,6 +119,14 @@ def cadastro_emprestimo_window():
     cursor.close()
     conn.close()
     combo_aluno.pack(fill="x", pady=5)
+
+    # Busca de livro
+    label_busca_livro = tk.Label(frame, text="Buscar Livro (Título ou Autor):")
+    label_busca_livro.pack(anchor="w", pady=5)
+    global entry_busca_livro
+    entry_busca_livro = tk.Entry(frame, width=50)
+    entry_busca_livro.pack(fill="x", pady=5)
+    entry_busca_livro.bind("<KeyRelease>", filtrar_livros)
 
     # Livro
     label_livro = tk.Label(frame, text="Livro:")

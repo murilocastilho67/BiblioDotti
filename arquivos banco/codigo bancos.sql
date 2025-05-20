@@ -137,4 +137,19 @@ UPDATE tb_exemplar SET id_livro = 1 WHERE id_livro = 7;
 SET FOREIGN_KEY_CHECKS = 1;
 
 
+ALTER TABLE tb_devolucao
+ADD COLUMN multa DECIMAL(10,2) DEFAULT 0.00;
+
+
+
+
+
+
+
+
+
+
+
+
+
 
